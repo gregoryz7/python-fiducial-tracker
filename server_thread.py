@@ -2,9 +2,9 @@
 import time # We need this for delay
 import socket # We need this for the network functionality
 import numpy as np # We need this to handle weird floating-point values, such as NaNs.
-import StringIO # We need this for constructing a plain text packet payload.
+from io import StringIO # We need this for constructing a plain text packet payload.
 import threading # We run the network communication stuff as a separate thread
-from Queue import Queue #We use this to communicate between threads
+import queue as Queue #We use this to communicate between threads
 
 
 # The tracker server runs as a function.
@@ -26,7 +26,7 @@ def tracker_server(port, shared_general_settings, shared_markers):
     udp_socket.bind( (ip_address, port) )
 
     # We need to assemble this to a string. Effectively, it will be done via CSV values.
-    data_to_send = StringIO.StringIO() # Create the buffer
+    data_to_send = StringIO() # Create the buffer
 
     server_to_run = 1
 

@@ -47,8 +47,8 @@ def process_config_file(config_file_name):
         #How long the running average filter should be
         marker_info["fifo_length"] = np.int_(configs[marker_info["name_string"]]['pose_estimation_running_average'])
         #Colours are are a different kettle of fish.
-        marker_info["feature_colour"] = ( np.int_(configs[marker_info["name_string"]]['marker_feature_colour_B']), np.int_(configs[marker_info["name_string"]]['marker_feature_colour_G']), np.int_(configs[marker_info["name_string"]]['marker_feature_colour_R']) )
-        marker_info["indicator_colour"] = ( np.int_(configs[marker_info["name_string"]]['marker_indicator_colour_B']), np.int_(configs[marker_info["name_string"]]['marker_indicator_colour_G']), np.int_(configs[marker_info["name_string"]]['marker_indicator_colour_R']) )
+        marker_info["feature_colour"]   = tuple([ int(np.int_(configs[marker_info["name_string"]]['marker_feature_colour_B'])), int(np.int_(configs[marker_info["name_string"]]['marker_feature_colour_G'])), int(np.int_(configs[marker_info["name_string"]]['marker_feature_colour_R'])) ])
+        marker_info["indicator_colour"] = tuple([ int(np.int_(configs[marker_info["name_string"]]['marker_indicator_colour_B'])), int(np.int_(configs[marker_info["name_string"]]['marker_indicator_colour_G'])), int(np.int_(configs[marker_info["name_string"]]['marker_indicator_colour_R'])) ])
         #Now that we have the data, toss it to the array. This method is slow, but we only need it once.
         markers.append(copy.deepcopy(marker_info)) #If we do it this way, no entry will be overwritten.
 

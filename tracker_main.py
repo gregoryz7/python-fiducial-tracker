@@ -5,7 +5,7 @@ import numpy as np # NumPy, because we can
 import copy # I have mutable variables, I need to clone them.
 import cv2 # OpenCV
 import threading # We run the network communication stuff as a separate thread
-from Queue import Queue #We use this to communicate between threads
+from queue import Queue #We use this to communicate between threads
 
 from server_thread import tracker_server # This is the tracker server in server_thread.py
 from config_file_reader import process_config_file #This is a function in config_file_reader.py
@@ -54,9 +54,10 @@ for i in range(0, general_settings["no_of_markers"]):
     markers[i]["key_points"], markers[i]["descriptors"] = feature_detector.detectAndCompute(markers[i]["image_data"], None) #Second argument is mask.
     markers[i]["matchcounter"] = 0 #this is used for the pose estimation.
     # 4., Initialise FIFOs for each marker pose data. Each FIFO length may be different.
-    markers[i]["translation_fifo"] = deque(maxlen=markers[i]["fifo_length"])
-    markers[i]["rotation_fifo"] = deque(maxlen=markers[i]["fifo_length"])
-    markers[i]["2d_centroid_fifo"] = deque(maxlen=markers[i]["fifo_length"])
+    maxlength = int(markers[i]["fifo_length"])
+    markers[i]["translation_fifo"] = deque(maxlen=maxlength)
+    markers[i]["rotation_fifo"] = deque(maxlen=maxlength)
+    markers[i]["2d_centroid_fifo"] = deque(maxlen=maxlength)
 
 #################################
 # Fetch image from camera. For each marker, do the feature matching and pose estimation.
@@ -100,8 +101,8 @@ while(True):
                 markers[i]["marker_matched_coords"][j,:] = np.int_( markers[i]["key_points"][markers[i]["good_matches"][j].trainIdx].pt )
                 #Add the matched dots to the output image.
                 if general_settings["camera_show_picture"] == 1:
-                    output_image = cv2.circle(output_image, (np.int_(markers[i]["camera_matched_coords"][j][0]), np.int_(markers[i]["camera_matched_coords"][j][1])), 2, markers[i]["feature_colour"], 1)
-
+                    output_image = cv2.circle(output_image, (np.int_(markers[i]["camera_matched_coords"][j][0]), np.int_(markers[i]["camera_matched_coords"][j][1])), 2, tuple(markers[i]["feature_colour"]), 1)
+                        
                 #Calculate the marker's 3D coordinates, which are the matched pixel coordinates on the marker image, on the Z=0 plane.
                 markers[i]["marker_3d_coords"][j, :] = np.float_([ (markers[i]["marker_matched_coords"][j][0]) * markers[i]["pixel_width"], (markers[i]["marker_matched_coords"][j][1]) * markers[i]["pixel_height"], 0])
 
@@ -130,7 +131,7 @@ while(True):
 
                 # Show the indicator on the screen, if required:
                 if general_settings["camera_show_picture"] == 1:
-                    output_image = cv2.circle(output_image, (np.int_(markers[i]["2d_centroid_mean"][0]), np.int_(markers[i]["2d_centroid_mean"][1])), 10, markers[i]["indicator_colour"], 10)
+                    output_image = cv2.circle(output_image, (np.int_(markers[i]["2d_centroid_mean"][0]), np.int_(markers[i]["2d_centroid_mean"][1])), 10, tuple(markers[i]["indicator_colour"]), 10)
 
 
 
@@ -174,13 +175,13 @@ while(True):
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break #This breaks the render loop.
 
-print "Quitting now."
+print("Quitting now.")
 #Clean up after ourselves.
 cv2.destroyAllWindows() #close all OpenCV-based windows
-print "Stopping server...."
+print("Stopping server....")
 #Signal the server thread to close, by changing the port it's supposed to listen in. This is our killswitch.
 general_settings["server_udp_port"] = 0
 general_settings_to_be_shared.put(general_settings)
 server_thread_handle.join() #Stop the server
-print "Letting go of the capture device..."
+print("Letting go of the capture device...")
 camera.release() #Let go of camera
